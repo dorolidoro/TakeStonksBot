@@ -17,7 +17,7 @@ import cats.syntax.functor._
 import schema.{ErrorResponse, OrderResponse}
 
 import scala.concurrent.{ExecutionContext, Future}
-import service.{MsgCreator, ServiceApi, ServiceWSApi}
+import service.{ServiceApi, ServiceWSApi}
 import storage.DataBaseQuery
 
 import scala.concurrent.Future

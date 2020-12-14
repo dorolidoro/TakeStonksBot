@@ -1,7 +1,6 @@
 import org.scalatest.funsuite.AsyncFunSuite
 import org.scalatest.matchers.should.Matchers
-import service.MsgCreator
-
+import telegram.MsgCreator
 
 
 class MsgTest extends AsyncFunSuite with Matchers {

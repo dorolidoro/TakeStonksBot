@@ -18,6 +18,7 @@ import schema.{LimitOrderRequest, OperationType}
 
 import scala.concurrent.{ExecutionContext, Future}
 import schema.websocket._
+import telegram.MsgCreator
 
 
 object ServiceWSApi {

@@ -1,7 +1,8 @@
-package service
+package telegram
+
+import schema._
 
 import scala.concurrent.Future
-import schema._
 
 object MsgCreator {
   def message(response: Either[ErrorResponse, Schema]): Future[String] =
@@ -62,19 +63,19 @@ object MsgCreator {
 
 
   def getOrderMsg(order: Seq[Order]): String =
-    order.map{ x =>
+    order.map { x =>
       s"""Order Id: ${x.orderId}    FIGI: ${x.figi}
          |Operation: ${x.operation}    Status: ${x.status}
          |Requested Lots: ${x.requestedLots}    Executed Lots: ${x.executedLots}
          |Price: ${x.price}""".stripMargin
-  }.mkString("\n")
+    }.mkString("\n")
 
   def getOrderBook(order: OrderBook): String =
     s"""FIGI: ${order.figi} Depth: ${order.depth}
        |ASKS:
-       |${order.asks.map{x => s"Price: ${x.price} Quantity: ${x.quantity}"}.mkString("\n")}
+       |${order.asks.map { x => s"Price: ${x.price} Quantity: ${x.quantity}" }.mkString("\n")}
        |BIDS:
-       |${order.bids.map{x => s"Price: ${x.price} Quantity: ${x.quantity}"}.mkString("\n")}
+       |${order.bids.map { x => s"Price: ${x.price} Quantity: ${x.quantity}" }.mkString("\n")}
        |____________
        |Min Price Increment: ${order.minPriceIncrement}
        |${pasteOrNot("LastPrice:", order.lastPrice)}
@@ -84,7 +85,7 @@ object MsgCreator {
        |""".stripMargin
 
   def cancelOrderMsg(status: String): String =
-      s"""Order canceled. Status: $status""".stripMargin
+    s"""Order canceled. Status: $status""".stripMargin
 
 
   def pasteOrNot(name: String, pos: Option[Any]): String =
