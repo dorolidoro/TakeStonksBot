@@ -6,9 +6,9 @@ import slick.jdbc.SQLiteProfile.api._
 import slick.lifted.ProvenShape
 
 import scala.concurrent.ExecutionContext
-import entrypoint.SLTPHTTPApp._
 import slick.jdbc.JdbcBackend
 import slick.jdbc.JdbcBackend.Database
+import telegram.TakeStonksBot.ec
 
 
 case class SLTPOrders(

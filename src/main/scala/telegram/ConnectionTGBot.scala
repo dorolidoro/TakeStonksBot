@@ -8,9 +8,10 @@ import akka.http.scaladsl.model.{ContentTypes, HttpEntity, HttpRequest}
 
 import scala.concurrent.Future
 import scala.concurrent.duration.DurationInt
-import entrypoint.SLTPHTTPApp._
 
 object ConnectionTGBot{
+  import TakeStonksBot.{as, materializer, ec}
+
   def setUrl(): Future[String] ={
     import com.typesafe.config.ConfigFactory
 

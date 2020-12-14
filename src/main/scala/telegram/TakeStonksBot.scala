@@ -3,6 +3,7 @@ package telegram
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
 import canoe.api._
+import canoe.models.ChatId
 import canoe.models.messages.TelegramMessage
 import canoe.syntax._
 import cats.effect.{Async, ExitCode, IO, IOApp}
@@ -28,12 +29,14 @@ object TakeStonksBot extends IOApp {
   implicit val as: ActorSystem = ActorSystem()
   implicit val ec: ExecutionContext = as.dispatcher
   implicit val materializer: ActorMaterializer.type = ActorMaterializer
+
   val token: String = ConfigFactory.load("application.conf").getString("localhost.token")
   val tokenTF: String = ConfigFactory.load("application.conf").getString("TFApi.token")
   val rootUrl: String = ConfigFactory.load("application.conf").getString("TFApi.url")
 
   val service: ServiceApi.type = ServiceApi
-  val serviceWs = ServiceWSApi
+  val serviceWs: ServiceWSApi.type = ServiceWSApi
+
 
   def run(args: List[String]): IO[ExitCode] = {
     for {
@@ -49,6 +52,7 @@ object TakeStonksBot extends IOApp {
               createLimitOrder,
               cancelOrder,
               createStopLossTakeProfit,
+              getOrderBook,
               help
             )
         }
@@ -57,6 +61,7 @@ object TakeStonksBot extends IOApp {
     } yield (ExitCode.Success)
 
   }
+
 
   def portfolio[F[_] : TelegramClient](implicit F: Async[F], cs: ContextShift[F]): Scenario[F, Unit] =
     for {
@@ -132,7 +137,9 @@ object TakeStonksBot extends IOApp {
   def getOrderBook[F[_] : TelegramClient](implicit F: Async[F], cs: ContextShift[F]): Scenario[F, Unit] =
     for {
       chat <- Scenario.expect(command("orderbook").chat)
-      _ <- Scenario.eval(chat.send("Please, enter figi and depth:"))
+      _ <- Scenario.eval(chat.send(
+        """Please, enter figi and depth (1 .. 20).
+        "|For example: SB2233938 1""".stripMargin))
       enter <- Scenario.expect(text)
       orderBookResp <- Scenario.eval(Async.fromFuture(F.delay(service.getOrderBook(enter.split(" ")(0),
         enter.split(" ")(1).toIntOption.getOrElse(-1)))))
@@ -149,6 +156,7 @@ object TakeStonksBot extends IOApp {
     } yield ()
 
   case class StopLossTakeProfitOrder(figi: String, lots: Option[Int], price1: Option[Double], price2: Option[Double])
+
   def parseStopLossTakeProfit(text: String) = {
     val parsed = text.split(" ")
     parsed.length match {
@@ -174,6 +182,7 @@ object TakeStonksBot extends IOApp {
            |/portfolio - shows your portfolio
            |/balance - shows your currencies balance
            |/searchbyticket - searches market's instruments
+           |/orderbook - shows orderbook by figi
            |/marketorder - create market order by figi
            |/limitorder - create limit order by figi
            |/stoplosstakeprofit - create stoploss takeprofit order
@@ -184,17 +193,14 @@ object TakeStonksBot extends IOApp {
       ))
     } yield ()
 
-//  def push[F[_] : TelegramClient](sltpRes: Future[Either[ErrorResponse, OrderResponse]])(implicit F: Async[F], cs: ContextShift[F]): Scenario[F, Unit] ={
-//    for{
-//      chat <- Scenario.expect(command("").chat)
-//      sltp <- sltpRes
-//      msg <- Scenario.eval(Async.fromFuture(F.delay(MsgCreator.message(sltp))))
-//      _ <- Scenario.eval(chat.send(msg))
-//    } yield ()
-//  }
-
-
-
+  //  def push[F[_] : TelegramClient](sltpRes: Future[Either[ErrorResponse, OrderResponse]])(implicit F: Async[F], cs: ContextShift[F]): Scenario[F, Unit] ={
+  //    for{
+  //      chat <- Scenario.expect(command("").chat)
+  //      sltp <- sltpRes
+  //      msg <- Scenario.eval(Async.fromFuture(F.delay(MsgCreator.message(sltp))))
+  //      _ <- Scenario.eval(chat.send(msg))
+  //    } yield ()
+  //  }
 
 
 }
