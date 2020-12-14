@@ -33,6 +33,7 @@ object GenericDerivation {
     case getOrderResponse@GetOrdersResponse(_, _, _) => getOrderResponse.asJson
 
     case orderBookResponse@OrderBookResponse(_, _, _) => orderBookResponse.asJson
+    case candlesResponse@CandlesResponse(_, _, _) => CandlesResponse.asJson
 
     //sandbox
     case sandboxSetPositionBalanceRequest@SandboxSetPositionBalanceRequest(_, _) => sandboxSetPositionBalanceRequest.asJson
@@ -58,6 +59,7 @@ object GenericDerivation {
       Decoder[GetOrdersResponse].widen,
 
       Decoder[OrderBookResponse].widen,
+      Decoder[CandlesResponse].widen,
 
       Decoder[SandboxSetPositionBalanceRequest].widen
 
