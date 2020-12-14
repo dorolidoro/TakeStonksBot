@@ -1,10 +1,19 @@
 package telegram
 
 import schema._
+import storage.SLTPOrders
 
 import scala.concurrent.Future
 
 object MsgCreator {
+  def notifyMsg(order: Option[SLTPOrders]): String = {
+    order match {
+      case None => "No new notification"
+      case Some(o) => s"""OrderId: ${o.orderId}
+                          MSG: ${o.message}""".stripMargin
+    }
+  }
+
   def message(response: Either[ErrorResponse, Schema]): Future[String] =
     response match {
       case Left(e) => Future.successful(s"Error: code: ${e.payload.code}, message: ${e.payload.message}")
@@ -12,9 +21,11 @@ object MsgCreator {
         case PortfolioResponse(_, _, payload) => Future.successful(portfolioMsg(payload.positions))
         case PortfolioCurrenciesResponse(_, _, payload) => Future.successful(portfolioCurMsg(payload.currencies))
         case MarketInstrumentListResponse(_, _, payload) => Future.successful(marketInstrListMsg(payload))
+        case mi@MarketInstrument(_,_,_,_,_,_,_,_,_) => Future.successful(marketInstrumentMsg(mi))
         case OrderResponse(_, _, payload) => Future.successful(orderMsg(payload))
         case GetOrdersResponse(_, _, payload) => Future.successful(getOrderMsg(payload))
         case OrderBookResponse(_, _, payload) => Future.successful(getOrderBook(payload))
+        case CandlesResponse(_, _, payload) => Future.successful(getCandleMsg(payload))
         case EmptyResponse(_, status, _) => Future.successful(cancelOrderMsg(status))
       }
     }
@@ -44,15 +55,19 @@ object MsgCreator {
     if (total > 0)
       s"Find ${total} instrument(s)\n" +
         marketInstrList.instruments.map { x =>
-          s"""Ticker: ${x.ticker}    Name: ${x.name}
-             |Type: ${x.`type`}    FIGI: ${x.figi}
-             |Lot: ${x.lot}    Minimum order quantity: ${x.minQuantity}
-             |Min Price Increment: ${x.minPriceIncrement}    Currency: ${x.currency}
-             |______________""".stripMargin
+          marketInstrumentMsg(x)
         }.mkString("\n")
     else
       s"No instruments found for this ticket\n"
   }
+
+  def marketInstrumentMsg(marketInstr: MarketInstrument): String =
+    s"""Ticker: ${marketInstr.ticker}    Name: ${marketInstr.name}
+       |Type: ${marketInstr.`type`}    FIGI: ${marketInstr.figi}
+       |Lot: ${marketInstr.lot}    Minimum order quantity: ${marketInstr.minQuantity}
+       |${pasteOrNot("Min Price Increment:", marketInstr.minPriceIncrement)}    ${pasteOrNot("Currency:", marketInstr.currency)}
+       |______________""".stripMargin
+
 
   def orderMsg(order: PlacedOrder): String =
     s"""Order Id: ${order.orderId}
@@ -62,13 +77,16 @@ object MsgCreator {
        |Requested Lots: ${order.requestedLots}    Executed Lots: ${order.executedLots}""".stripMargin
 
 
-  def getOrderMsg(order: Seq[Order]): String =
-    order.map { x =>
-      s"""Order Id: ${x.orderId}    FIGI: ${x.figi}
-         |Operation: ${x.operation}    Status: ${x.status}
-         |Requested Lots: ${x.requestedLots}    Executed Lots: ${x.executedLots}
-         |Price: ${x.price}""".stripMargin
-    }.mkString("\n")
+  def getOrderMsg(order: Seq[Order]): String = {
+    if (order.isEmpty) s"No active orders"
+    else
+      order.map { x =>
+        s"""Order Id: ${x.orderId}    FIGI: ${x.figi}
+           |Operation: ${x.operation}    Status: ${x.status}
+           |Requested Lots: ${x.requestedLots}    Executed Lots: ${x.executedLots}
+           |Price: ${x.price}""".stripMargin
+      }.mkString("\n")
+  }
 
   def getOrderBook(order: OrderBook): String =
     s"""FIGI: ${order.figi} Depth: ${order.depth}
@@ -83,6 +101,19 @@ object MsgCreator {
        |${pasteOrNot("Limit Down:", order.limitDown)}
        |${pasteOrNot("Limit Up:", order.limitUp)}
        |""".stripMargin
+
+  def getCandleMsg(candles: Candles): String = {
+    s"FIGI ${candles.figi} Interval${candles.interval}\n" +
+      candles.candles.map { x =>
+        s"""Opening price: ${x.o}
+           |Close price: ${x.c}
+           |Highest price: ${x.h}
+           |Lowest price: ${x.l}
+           |Trading volume: ${x.v}
+           |Time: ${x.time}
+           |""".stripMargin
+      }.mkString("\n")
+  }
 
   def cancelOrderMsg(status: String): String =
     s"""Order canceled. Status: $status""".stripMargin
