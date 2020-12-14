@@ -28,21 +28,17 @@ class QueryRepositoryTest extends DatabaseSuite with Matchers {
 
   test("addSLTPOrders") {
     //random gen!
-    val newOrder = SLTPOrders("broker2", "333", "New")
+    val newOrder = SLTPOrders("2", "TP", 120, "New", "Order complete")
     for {
       _ <- rep.addSLTPOrders(newOrder)
       order <- rep.findSLTPOrders("333")
     } yield assert(order.contains(newOrder))
   }
 
-  test("findUserOrders") {
-    val brokerAccId = "tf_id_1"
+  test("findOrdersByTypeAndStatus") {
     for {
-      userOrders <- rep.findUserOrders(brokerAccId)
-    } yield assert(userOrders.get(Users("1", "token", "tf_id_1")) match {
-      case Some(vector) => vector.contains(SLTPOrders("tf_id_1","213","New"))
-      case _ => false
-    })
+     orders <- rep.findOrdersByTypeAndStatus("SL", "New")
+    } yield assert(orders.contains(SampleOrders.headOption.getOrElse(false)))
   }
 
 }

@@ -14,11 +14,12 @@ import de.heikoseeberger.akkahttpcirce.FailFastCirceSupport._
 import schema.websocket.{CandleRequest, CandleResponse}
 import io.circe.syntax._
 import io.circe.generic.auto._
-import schema.{LimitOrderRequest, OperationType}
+import schema.{ErrorResponse, LimitOrderRequest, OperationType, OrderResponse}
 
 import scala.concurrent.{ExecutionContext, Future}
 import schema.websocket._
-import telegram.MsgCreator
+import storage.SLTPOrders
+import telegram.{MsgCreator, TakeStonksBot}
 
 
 object ServiceWSApi {
@@ -34,8 +35,18 @@ object ServiceWSApi {
         case message: TextMessage.Strict => {
           val candle = Unmarshal(message.text).to[CandleResponse]
           candle.map(candle => {
-            if (candle.payload.c <= stopLoss) service.createLimitOrder(figi, lots, OperationType.Sell, stopLoss).map(MsgCreator.message(_))
-            if (candle.payload.c >= takeProfit) service.createLimitOrder(figi, lots, OperationType.Sell, takeProfit).map(MsgCreator.message(_))
+            if (candle.payload.c <= stopLoss) {
+              for {
+                order <- service.createLimitOrder(figi, lots, OperationType.Sell, stopLoss)
+                msg <- MsgCreator.message(order)
+              } yield (stopLossTakeProfitEvent(order, candle.payload.c, msg, "SL"))
+            }
+            if (candle.payload.c >= takeProfit) {
+              for {
+                order <- service.createLimitOrder(figi, lots, OperationType.Sell, takeProfit)
+                msg <- MsgCreator.message(order)
+              } yield (stopLossTakeProfitEvent(order, candle.payload.c, msg, "TP"))
+            }
           })
         }
         case _ =>
@@ -65,6 +76,16 @@ object ServiceWSApi {
   }
 
 
+  def stopLossTakeProfitEvent(order: Either[ErrorResponse, OrderResponse], price: Double, message: String, `type`: String): Unit = {
+    order match {
+      case Left(e) =>
+      case Right(value) => db.run(DBQuery.addSLTPOrders(SLTPOrders(value.payload.orderId,
+        `type`, price, "New", message))).andThen { case _ => db.close() }
+    }
+  }
+
+
+
 //  def checkStopLossTakeProfit(order: StopLossTakeProfitOrder): Future[Either[String, Option[Double]]] = {
 //    for{
 //      orderBook <- service.getOrderBook(order.figi, 1)
@@ -77,8 +98,6 @@ object ServiceWSApi {
 //  }
 
 
-  def stopLossEvent(candle: CandleResponse, order: LimitOrderRequest) =
-    if (candle.payload.c <= order.price) service.createLimitOrder(candle.payload.figi, order.lots, order.operation, order.price)
 
 
 }

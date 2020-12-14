@@ -12,20 +12,25 @@ import telegram.TakeStonksBot.ec
 
 
 case class SLTPOrders(
-                       brokerAccountId: String,
                        orderId: String,
-                       status: String
+                       `type`: String,
+                       price: Double,
+                       status: String,
+                       message: String
+
                      )
 
 class SLTPOrdersTable(tag: Tag) extends Table[SLTPOrders](tag, "SLTP_ORDERS") {
 
-  def brokerAccountId: Rep[String] = column("BROKER_ACCOUNT_ID")
-
   def orderId: Rep[String] = column("ORDER_ID", O.PrimaryKey)
+  def price: Rep[Double] = column("PRICE")
+
+  def `type`: Rep[String] = column("TYPE")
 
   def status: Rep[String] = column("STATUS")
+  def message: Rep[String] = column("MESSAGE")
 
-  override def * : ProvenShape[SLTPOrders] = (brokerAccountId, orderId, status).mapTo[SLTPOrders]
+  override def * : ProvenShape[SLTPOrders] = ( orderId, `type`, price, status, message).mapTo[SLTPOrders]
 }
 
 case class Users(
@@ -73,15 +78,18 @@ class DataBaseQuery {
   def addSLTPOrders(SLTPOrders: SLTPOrders): DIO[Int, Effect.Write] =
     AllSLTPOrders += SLTPOrders
 
-  def findUserOrders(brokerAccountId: String)(implicit ec: ExecutionContext):
-  DBIOAction[Map[Users, Seq[SLTPOrders]], NoStream, Effect.Read] = {
-    AllSLTPOrders.filter(_.brokerAccountId === brokerAccountId)
-      .join(AllUsers)
-      .on(_.brokerAccountId === _.brokerAccountId)
+  def findOrdersByTypeAndStatus(`type`: String, status: String)(implicit ec: ExecutionContext):
+  DIO[Option[SLTPOrders], Effect.Read] = {
+    AllSLTPOrders
+      .filter(_.`type` === `type`)
+      .filter(_.status === status)
       .result
-      .map(_.groupMap(_._2)(_._1))
+      .headOption
+  }
 
-
+  def updOrderType(orderId: String): DIO[Int, Effect.Write] = {
+    val q = for {elem <- AllSLTPOrders if elem.orderId === orderId} yield elem.`type`
+    q.update("Notified")
   }
 }
 

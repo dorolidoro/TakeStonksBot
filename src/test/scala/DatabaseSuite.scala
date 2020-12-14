@@ -33,6 +33,6 @@ abstract class DatabaseSuite extends AsyncFunSuite {
   )
 
   protected val SampleOrders = Seq(
-    SLTPOrders ("tf_id_1", "213", "New")
+    SLTPOrders ("1", "SL", 100, "New", "Order complete")
   )
 }
