@@ -1,0 +1,11 @@
+package schema
+
+trait Schema
+
+
+
+
+
+
+
+
