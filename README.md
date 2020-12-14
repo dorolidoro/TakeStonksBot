@@ -10,6 +10,8 @@
 - `/portfolio` - shows your portfolio
 - `/balance` - shows your currencies balance
 - `/searchbyticket` - searches market's instruments
+- `/orderbook` - shows orderbook by figi
+- `candles` - shows candles (fix it)
 - `/marketorder` - create market order by figi
 - `/limitorder` - create limit order by figi
 - `/stoplosstakeprofit` - create stoploss takeprofit order (in process)
@@ -17,6 +19,8 @@
 - `/cancelorder` - cancel order by id
 - `/help` - show all commands
 ## ToDo
+- Регистрация пользователя `/register`
+- SLTP
 - Работа со streaming
 - Запись в БД
 ## Links

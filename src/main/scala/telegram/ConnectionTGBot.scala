@@ -10,6 +10,7 @@ import scala.concurrent.Future
 import scala.concurrent.duration.DurationInt
 
 object ConnectionTGBot{
+  //SetWebHook
   import TakeStonksBot.{as, materializer, ec}
 
   def setUrl(): Future[String] ={
