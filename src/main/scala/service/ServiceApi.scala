@@ -106,16 +106,16 @@ object ServiceApi {
         })
   }
 
-  def searchMarketInstrumentByFIGI(figi: String): Future[Either[ErrorResponse, MarketInstrument]] = {
+  def searchMarketInstrumentByFIGI(figi: String): Future[Either[ErrorResponse, MarketInstrumentListByFigiResponse]] = {
     Http().singleRequest(request
       .withMethod(GET)
       .withUri(Uri(request.uri + "/market/search/by-figi").withQuery(Query(Map("figi" -> figi)))))
       .flatMap(res =>
         res.status match {
           case StatusCodes.OK =>
-            Unmarshal(res).to[MarketInstrument].map(Right(_).withLeft[ErrorResponse])
+            Unmarshal(res).to[MarketInstrumentListByFigiResponse].map(Right(_).withLeft[ErrorResponse])
           case _ =>
-            Unmarshal(res).to[ErrorResponse].map(Left(_).withRight[MarketInstrument])
+            Unmarshal(res).to[ErrorResponse].map(Left(_).withRight[MarketInstrumentListByFigiResponse])
         })
   }
 

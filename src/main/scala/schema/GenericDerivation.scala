@@ -25,6 +25,9 @@ object GenericDerivation {
 
     //market
     case marketInstrumentListResponse@MarketInstrumentListResponse(_, _, _) => marketInstrumentListResponse.asJson
+    case marketInstrumentList@MarketInstrumentList(_, _) => marketInstrumentList.asJson
+    case marketInstrument@MarketInstrument(_, _, _,_, _, _,_, _, _) => marketInstrument.asJson
+    case marketInstrument@MarketInstrumentListByFigiResponse(_, _, _) => marketInstrument.asJson
 
     //Orders
    // case marketOrderRequest@MarketOrderRequest(_, _) => marketOrderRequest.asJson
@@ -33,7 +36,7 @@ object GenericDerivation {
     case getOrderResponse@GetOrdersResponse(_, _, _) => getOrderResponse.asJson
 
     case orderBookResponse@OrderBookResponse(_, _, _) => orderBookResponse.asJson
-    case candlesResponse@CandlesResponse(_, _, _) => CandlesResponse.asJson
+    case candlesResponse@CandlesResponse(_, _, _) => candlesResponse.asJson
 
     //sandbox
     case sandboxSetPositionBalanceRequest@SandboxSetPositionBalanceRequest(_, _) => sandboxSetPositionBalanceRequest.asJson
@@ -52,6 +55,9 @@ object GenericDerivation {
       Decoder[PortfolioCurrenciesResponse].widen,
 
       Decoder[MarketInstrumentListResponse].widen,
+      Decoder[MarketInstrumentList].widen,
+      Decoder[MarketInstrument].widen,
+      Decoder[MarketInstrumentListByFigiResponse].widen,
 
       //Decoder[MarketOrderRequest].widen,
       Decoder[LimitOrderRequest].widen,

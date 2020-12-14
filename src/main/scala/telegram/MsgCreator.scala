@@ -21,7 +21,7 @@ object MsgCreator {
         case PortfolioResponse(_, _, payload) => Future.successful(portfolioMsg(payload.positions))
         case PortfolioCurrenciesResponse(_, _, payload) => Future.successful(portfolioCurMsg(payload.currencies))
         case MarketInstrumentListResponse(_, _, payload) => Future.successful(marketInstrListMsg(payload))
-        case mi@MarketInstrument(_,_,_,_,_,_,_,_,_) => Future.successful(marketInstrumentMsg(mi))
+        case MarketInstrumentListByFigiResponse(_,_,payload) => Future.successful(marketInstrumentMsg(payload))
         case OrderResponse(_, _, payload) => Future.successful(orderMsg(payload))
         case GetOrdersResponse(_, _, payload) => Future.successful(getOrderMsg(payload))
         case OrderBookResponse(_, _, payload) => Future.successful(getOrderBook(payload))

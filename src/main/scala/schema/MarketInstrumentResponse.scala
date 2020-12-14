@@ -9,6 +9,10 @@ case class MarketInstrumentListResponse(trackingId: String,
 case class MarketInstrumentList(total: Option[Int],
                                 instruments: List[MarketInstrument]) extends Schema
 
+case class MarketInstrumentListByFigiResponse(trackingId: String,
+                                        status: String,
+                                        payload: MarketInstrument) extends Schema
+
 case class MarketInstrument(figi: String,
                             ticker: String,
                             isin: String,

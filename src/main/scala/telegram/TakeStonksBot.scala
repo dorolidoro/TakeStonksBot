@@ -64,7 +64,7 @@ object TakeStonksBot extends IOApp {
               cancelOrder,
               //createStopLossTakeProfit,
               getOrderBook,
-             // getCandles,
+              //getCandles,
               orders,
               help
             )
